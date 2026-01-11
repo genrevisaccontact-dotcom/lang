@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grade Up</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, dodgerblue, deepskyblue);
+  min-height: 100vh;
+  padding-top: 120px;
+  padding-bottom: 60px;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  z-index: 100;
+}
+
+header img {
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+nav {
+  position: fixed;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  background: rgba(0, 61, 115, 0.9);
+  padding: 10px 15px;
+  border-radius: 25px;
+  z-index: 90;
+}
+
+nav button {
+  background: lightblue;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 10px 0;
+}
+
+.logged-in-section {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: darkblue;
+}
+
+input, select {
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 15px;
+  border: 1px solid lightgray;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: dodgerblue;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.result, .history-box {
+  background: aliceblue;
+  padding: 15px;
+  border-radius: 15px;
+  color: darkblue;
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="https://via.placeholder.com/45">
+  <h1>Grade Up</h1>
+</header>
+
+<nav id="nav" class="hidden">
+  <button onclick="goHome()">Home</button>
+  <button onclick="goHistory()">History</button>
+  <button onclick="logout()">Logout</button>
+</nav>
+
+<footer>© All Rights Reserved 2025</footer>
+
+<!-- LOGIN -->
+<div id="login-section" class="logged-in-section">
+  <h2>Login</h2>
+  <input id="login-username" placeholder="Username">
+  <input id="login-password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="register()">Register</button>
+</div>
+
+<!-- HOME -->
+<div id="home-section" class="hidden logged-in-section">
+  <h2>Choose Subject</h2>
+  <select id="subject-select">
+    <option value="">Select Subject</option>
+    <option>Java</option>
+    <option>Philosophy</option>
+    <option>UCSP</option>
+  </select>
+  <button onclick="goScores()">Next</button>
+</div>
+
+<!-- SCORES -->
+<div id="scores-section" class="hidden logged-in-section">
+  <h2>Enter Scores</h2>
+  <input type="number" id="ww" placeholder="Written Works">
+  <input type="number" id="pt" placeholder="Performance Task">
+  <input type="number" id="qe" placeholder="Quarterly Exam">
+  <button onclick="compute()">Compute</button>
+</div>
+
+<!-- RESULT -->
+<div id="result-section" class="hidden logged-in-section">
+  <h2>Computation Result</h2>
+  <div id="output" class="history-box"></div>
+  <button onclick="goHome()">Back to Home</button>
+</div>
+
+<!-- HISTORY -->
+<div id="history-section" class="hidden logged-in-section">
+  <h2>Previous Computations</h2>
+  <div id="history-list" class="history-box"></div>
+  <button onclick="goHome()">Back to Home</button>
+</div>
+
+<script>
+const loginSection = document.getElementById('login-section');
+const homeSection = document.getElementById('home-section');
+const scoresSection = document.getElementById('scores-section');
+const resultSection = document.getElementById('result-section');
+const historySection = document.getElementById('history-section');
+const nav = document.getElementById('nav');
+
+const usernameInput = document.getElementById('login-username');
+const passwordInput = document.getElementById('login-password');
+const subjectSelect = document.getElementById('subject-select');
+const historyList = document.getElementById('history-list');
+const output = document.getElementById('output');
+
+let currentUser = null;
+
+function hideAll() {
+  loginSection.classList.add('hidden');
+  homeSection.classList.add('hidden');
+  scoresSection.classList.add('hidden');
+  resultSection.classList.add('hidden');
+  historySection.classList.add('hidden');
+}
+
+function register() {
+  const u = usernameInput.value.trim();
+  const p = passwordInput.value.trim();
+  if (!u || !p) return alert("Fill all fields");
+  if (localStorage.getItem("user_" + u)) return alert("User exists");
+  localStorage.setItem("user_" + u, p);
+  alert("Registered successfully");
+}
+
+function login() {
+  const u = usernameInput.value.trim();
+  const p = passwordInput.value.trim();
+  if (localStorage.getItem("user_" + u) !== p)
+    return alert("Invalid login");
+  currentUser = u;
+  nav.classList.remove('hidden');
+  hideAll();
+  homeSection.classList.remove('hidden');
+}
+
+function goHome() {
+  hideAll();
+  homeSection.classList.remove('hidden');
+}
+
+function goScores() {
+  if (!subjectSelect.value) return alert("Select subject");
+  hideAll();
+  scoresSection.classList.remove('hidden');
+}
+
+function compute() {
+  const grade = (
+    ww.value * 0.3 +
+    pt.value * 0.5 +
+    qe.value * 0.2
+  ).toFixed(2);
+
+  const message =
+    grade >= 75
+      ? "You passed, but still no bitches but still you passed so that's an achievement right?? Nerd!!"
+      : "You failed, as expected of a failure that's why you don't have bitches";
+
+  const date = new Date().toLocaleString();
+
+  output.innerHTML = `
+    <p><strong>User:</strong> ${currentUser}</p>
+    <p><strong>Subject:</strong> ${subjectSelect.value}</p>
+    <p><strong>Grade:</strong> ${grade}</p>
+    <p><strong>Message:</strong> ${message}</p>
+    <p style="font-size:12px;color:gray;">Computed on: ${date}</p>
+  `;
+
+  const record = { user: currentUser, subject: subjectSelect.value, grade, message, date };
+  const key = currentUser + "_history";
+  const history = JSON.parse(localStorage.getItem(key)) || [];
+  history.push(record);
+  localStorage.setItem(key, JSON.stringify(history));
+
+  hideAll();
+  resultSection.classList.remove('hidden');
+}
+
+function goHistory() {
+  hideAll();
+  historySection.classList.remove('hidden');
+
+  const key = currentUser + "_history";
+  const history = JSON.parse(localStorage.getItem(key)) || [];
+
+  historyList.innerHTML = history.length
+    ? history.map(h => `
+      <div style="margin-bottom:15px;">
+        <p><strong>User:</strong> ${h.user}</p>
+        <p><strong>Subject:</strong> ${h.subject}</p>
+        <p><strong>Grade:</strong> ${h.grade}</p>
+        <p><strong>Message:</strong> ${h.message}</p>
+        <p style="font-size:12px;color:gray;">Computed on: ${h.date}</p>
+      </div>
+    `).join('')
+    : "<p>No records found.</p>";
+}
+
+function logout() {
+  currentUser = null;
+  nav.classList.add('hidden');
+  hideAll();
+  loginSection.classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
